@@ -56,7 +56,11 @@ public class ProdutosController : ControllerBase
             return NotFound();
         }
 
-        _context.Update(produto);
+        existingProduto.Nome = produto.Nome;
+        existingProduto.Descricao = produto.Descricao;
+        existingProduto.Preco = produto.Preco;
+        existingProduto.Categoria = produto.Categoria;
+
         await _context.SaveChangesAsync();
 
         return NoContent();
