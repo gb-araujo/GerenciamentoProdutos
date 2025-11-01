@@ -3,18 +3,29 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { Produto } from "./types/Produto";
 import axios from "axios";
+import ProdutoForm from "./components/ProdutoForm";
 
 export default function App() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const API_URL = "https://localhost:7271/api/produtos";
+  const API_BASE_URL = `${process.env.REACT_APP_API_URL}/produtos`;
 
-  useEffect(() => {
-    const fetchProdutos = async () => {
+  if (!API_BASE_URL) {
+    console.error(
+      "Variável de ambiente REACT_APP_API_URL não configurada ou vazia!"
+    );
+  }
+
+  const handleProdutoCadastrado = () => {
+    fetchProdutos();
+  };
+
+  const fetchProdutos = async () => {
+    let response;
+    if (API_BASE_URL) {
+      response = await axios.get<Produto[]>(API_BASE_URL);
       try {
-        const response = await axios.get<Produto[]>(API_URL);
-
         setProdutos(response.data);
         setLoading(false);
       } catch (err) {
@@ -23,7 +34,10 @@ export default function App() {
           "Falha ao carregar produtos. Verifique se a API está em execução e CORS configurado "
         );
       }
-    };
+    }
+  };
+
+  useEffect(() => {
     fetchProdutos();
   }, []);
 
@@ -60,10 +74,20 @@ export default function App() {
               <p>
                 <strong>Descrição:</strong> {produto.descricao}
               </p>
+              <p>
+                <strong>Categoria:</strong> {produto.categoria}
+              </p>
             </div>
           ))}
         </div>
       )}
+
+      <div
+        style={{ margin: "20px", padding: "20px", border: "1px dashed gray" }}
+      >
+        <h2>Adicionar Novo Produto</h2>
+        <ProdutoForm onCadastroSucesso={handleProdutoCadastrado} />
+      </div>
     </div>
   );
 }
