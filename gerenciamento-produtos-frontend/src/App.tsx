@@ -9,6 +9,8 @@ export default function App() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [produtoEmEdicao, setProdutoEdicao] = useState<Produto | null>(null);
+
   const API_BASE_URL = `${process.env.REACT_APP_API_URL}/produtos`;
 
   if (!API_BASE_URL) {
@@ -41,9 +43,29 @@ export default function App() {
     fetchProdutos();
   }, []);
 
+  const handleStartEdit = (produto: Produto) => {
+    setProdutoEdicao(produto);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm(`Tem certeza que deseja excluir o produto? ${id}`)) {
+      try {
+        const response = await axios.delete(`${API_BASE_URL}/${id}`);
+
+        if (response.status === 204) {
+          alert("Produto excluido com sucesso");
+          fetchProdutos();
+        }
+      } catch (error) {
+        console.error("Erro ao excluir produto: ", error);
+        alert("Falha ao excluir o produto");
+      }
+    }
+  };
+
   return (
     <div className="App">
-      <h1>Gerenciamento de Produtos (React/TS)</h1>
+      <h1>Gerenciamento de Produtos</h1>
 
       {loading && <p>Carregando dados da API...</p>}
 
@@ -52,7 +74,6 @@ export default function App() {
       {!loading && !error && (
         <div>
           <h2>Lista de Produtos ({produtos.length})</h2>
-          {/* Usamos o método map() do JavaScript para renderizar cada item do array */}
           {produtos.map((produto) => (
             <div
               key={produto.id}
@@ -62,6 +83,13 @@ export default function App() {
                 padding: "10px",
               }}
             >
+              <td>
+                <button onClick={() => handleStartEdit(produto)}>Editar</button>
+
+                <button onClick={() => handleDelete(produto.id)}>
+                  Excluir
+                </button>
+              </td>
               <p>
                 <strong>ID:</strong> {produto.id}
               </p>
@@ -86,7 +114,10 @@ export default function App() {
         style={{ margin: "20px", padding: "20px", border: "1px dashed gray" }}
       >
         <h2>Adicionar Novo Produto</h2>
-        <ProdutoForm onCadastroSucesso={handleProdutoCadastrado} />
+        <ProdutoForm
+          onCadastroSucesso={handleProdutoCadastrado}
+          produtoInicial={produtoEmEdicao}
+        />
       </div>
     </div>
   );

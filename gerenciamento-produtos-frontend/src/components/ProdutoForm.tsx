@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Produto } from "../types/Produto";
 import axios from "axios";
 
 interface Props {
   onCadastroSucesso: () => void;
+  produtoInicial: Produto | null;
 }
 
-export default function ProdutoForm({ onCadastroSucesso }: Props) {
+export default function ProdutoForm({
+  onCadastroSucesso,
+  produtoInicial,
+}: Props) {
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("");
@@ -14,12 +18,22 @@ export default function ProdutoForm({ onCadastroSucesso }: Props) {
   const [mensagem, setMensagem] = useState<string | null>(null);
   const API_BASE_URL = `${process.env.REACT_APP_API_URL}/produtos`;
 
+  useEffect(() => {
+    if (produtoInicial) {
+      setNome(produtoInicial.nome);
+      setDescricao(produtoInicial.descricao);
+      setPreco(produtoInicial.preco.toFixed(2).replace(".", ","));
+      setCategoria(produtoInicial.categoria);
+      setMensagem(`Editando Produto ID: ${produtoInicial.id}`);
+    }
+  }, [produtoInicial]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     let precoLimpo = preco.replace(",", ".");
     let precoNumerico: number = Number(precoLimpo);
 
-    const novoProduto = {
+    const dadosFormulario = {
       nome: nome,
       descricao: descricao,
       preco: precoNumerico,
@@ -27,14 +41,29 @@ export default function ProdutoForm({ onCadastroSucesso }: Props) {
     };
 
     try {
-      const response = await axios.post(API_BASE_URL, novoProduto);
+      let response;
+      let url;
 
-      if (response.status == 201) {
+      if (produtoInicial) {
+        url = `${API_BASE_URL}/${produtoInicial.id}`;
+        const produtoComId = { ...dadosFormulario, id: produtoInicial.id };
+        response = await axios.put(url, produtoComId);
+      } else {
+        url = API_BASE_URL;
+        response = await axios.post(url, dadosFormulario);
+      }
+
+      if (
+        response.status === 201 ||
+        response.status === 204 ||
+        response.status === 200
+      ) {
         setNome("");
         setDescricao("");
         setPreco("");
         setCategoria("");
-        setMensagem("Produto cadastrado com sucesso!");
+        setMensagem("Operação realizada com sucesso!");
+
         onCadastroSucesso();
       }
     } catch (error) {
@@ -44,7 +73,6 @@ export default function ProdutoForm({ onCadastroSucesso }: Props) {
   };
 
   return (
-    // O formulário HTML
     <form onSubmit={handleSubmit}>
       <h2>{mensagem && <p>{mensagem}</p>}</h2>
       <label>Nome:</label>
