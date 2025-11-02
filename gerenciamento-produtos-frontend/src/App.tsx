@@ -19,6 +19,10 @@ export default function App() {
     );
   }
 
+  const handleCancelEdit = () => {
+    setProdutoEdicao(null);
+  };
+
   const handleProdutoCadastrado = () => {
     fetchProdutos();
   };
@@ -64,60 +68,74 @@ export default function App() {
   };
 
   return (
-    <div className="App">
-      <h1>Gerenciamento de Produtos</h1>
+    <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+        Gerenciamento de Produtos
+      </h1>
 
-      {loading && <p>Carregando dados da API...</p>}
-
-      {error && <p style={{ color: "red" }}>Erro: {error}</p>}
-
-      {!loading && !error && (
-        <div>
-          <h2>Lista de Produtos ({produtos.length})</h2>
-          {produtos.map((produto) => (
-            <div
-              key={produto.id}
-              style={{
-                border: "1px solid #ccc",
-                margin: "10px",
-                padding: "10px",
-              }}
-            >
-              <td>
-                <button onClick={() => handleStartEdit(produto)}>Editar</button>
-
-                <button onClick={() => handleDelete(produto.id)}>
-                  Excluir
-                </button>
-              </td>
-              <p>
-                <strong>ID:</strong> {produto.id}
-              </p>
-              <p>
-                <strong>Nome:</strong> {produto.nome}
-              </p>
-              <p>
-                <strong>Preço:</strong> R$ {produto.preco}
-              </p>
-              <p>
-                <strong>Descrição:</strong> {produto.descricao}
-              </p>
-              <p>
-                <strong>Categoria:</strong> {produto.categoria}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div
-        style={{ margin: "20px", padding: "20px", border: "1px dashed gray" }}
-      >
-        <h2>Adicionar Novo Produto</h2>
+      <div className="w-full max-w-lg mb-8">
+        <h2 className="text-xl font-semibold mb-3 text-gray-700 text-center">
+          {produtoEmEdicao ? "Editar Produto" : "Adicionar Novo Produto"}
+        </h2>
         <ProdutoForm
           onCadastroSucesso={handleProdutoCadastrado}
           produtoInicial={produtoEmEdicao}
+          onCancelEdit={handleCancelEdit}
         />
+      </div>
+
+      <hr className="w-full max-w-4xl border-gray-300 mb-6" />
+
+      <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-6">
+        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+          Lista de Produtos ({produtos.length})
+        </h2>
+
+        {loading && <p className="text-blue-500">Carregando dados da API...</p>}
+        {error && <p className="text-red-600">{error}</p>}
+
+        {!loading && !error && (
+          <div className="space-y-4">
+            {produtos.length === 0 && (
+              <p className="text-gray-500">Nenhum produto cadastrado.</p>
+            )}
+
+            {produtos.map((produto) => (
+              <div
+                key={produto.id}
+                className="flex justify-between items-center p-4 border border-gray-200 rounded-md hover:bg-gray-50 transition duration-150"
+              >
+                <div>
+                  <p className="text-lg font-medium text-gray-900">
+                    {produto.nome} (ID: {produto.id})
+                  </p>
+                  <p className="text-sm text-gray-600">{produto.descricao}</p>
+                  <p className="text-base font-bold text-green-600">
+                    R$ {produto.preco.toFixed(2)}
+                  </p>
+                  <span className="text-xs inline-block bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full mt-1">
+                    {produto.categoria}
+                  </span>
+                </div>
+
+                <div className="space-x-2 flex-shrink-0">
+                  <button
+                    onClick={() => handleStartEdit(produto)}
+                    className="px-3 py-1 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(produto.id)}
+                    className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
